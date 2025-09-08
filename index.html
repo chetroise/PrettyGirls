@@ -414,13 +414,17 @@
     <div class="notification" id="notification"></div>
 
     <script>
-        // API接口数组
+        // 增强的API接口数组，包含多个备用接口
         const APIs = [
-            'https://api.yujn.cn/api/zzxjj.php?type=video',
-            'https://api.lolimi.cn/API/zzxjj/',
-            'https://api.lolimi.cn/API/zzxjj/api.php',
-            'https://api.ghser.com/random/api.php?sort=302',
-            'https://api.ghser.com/random/api.php?sort=303'
+            "https://v.api.aa1.cn/api/api-dy-girl/index.php?aa1=ajdu9",
+            "https://api.yujn.cn/api/zzxjj.php?type=video",
+            "https://v.api.aa1.cn/api/api-girl-11-02/index.php?aa1=ajdu9",
+            "https://api.lolimi.cn/API/zzxjj/",
+            "https://v.api.aa1.cn/api/api-video-girl/index.php?aa1=ajdu9",
+            "https://api.ghser.com/random/api.php?sort=302",
+            "https://v.api.aa1.cn/api/api-video-dy-girl/index.php?aa1=ajdu9",
+            "https://api.ghser.com/random/api.php?sort=303",
+            "https://v.api.aa1.cn/api/api-video-sc/index.php?aa1=ajdu9"
         ];
 
         // 全局变量
@@ -428,17 +432,15 @@
         const loading = document.getElementById('loading');
         let autoPlayEnabled = false;
         let viewCount = 0;
-        let currentApiIndex = -1;
+        let currentApiIndex = 0; // 当前API索引
+        const API_SWITCH_LIMIT = APIs.length * 2; // 切换API的总次数限制，防止无限循环
+        let apiSwitchCount = 0; // API切换计数器
         let userInteracted = false;
 
-        // 获取随机API
-        function getRandomAPI() {
-            let newIndex;
-            do {
-                newIndex = Math.floor(Math.random() * APIs.length);
-            } while (newIndex === currentApiIndex && APIs.length > 1);
-            
-            currentApiIndex = newIndex;
+        // 顺序获取下一个API
+        function getNextAPI() {
+            currentApiIndex = (currentApiIndex + 1) % APIs.length;
+            apiSwitchCount++;
             return APIs[currentApiIndex];
         }
 
@@ -479,16 +481,36 @@
             toggleMuteBtn.textContent = videoPlayer.muted ? '🔊 取消静音' : '🔊 开启静音';
         }
 
-        // 加载新视频
+        // 加载新视频（增强版，带API轮换和超时）
         function loadNewVideo() {
             showLoading();
-            const videoUrl = getRandomAPI();
+
+            if (apiSwitchCount >= API_SWITCH_LIMIT) {
+                showNotification('所有API接口尝试失败，请稍后再试');
+                hideLoading();
+                apiSwitchCount = 0; // 为下次手动尝试重置
+                return;
+            }
+
+            const videoUrl = getNextAPI();
+            showNotification(`正在尝试接口 ${currentApiIndex + 1}/${APIs.length}...`);
             videoPlayer.src = videoUrl;
             videoPlayer.load();
             updateViewCount();
-            
-            // 尝试自动播放
+
+            const loadTimeout = setTimeout(() => {
+                // 如果视频在8秒内没有开始加载，则认为超时
+                if (videoPlayer.readyState < 1) { 
+                    videoPlayer.src = ''; // 停止当前请求
+                    showNotification(`接口 ${currentApiIndex + 1} 加载超时，自动切换`);
+                    loadNewVideo(); // 尝试下一个API
+                }
+            }, 8000); // 8秒超时
+
+            // 视频可以播放时，清除超时并重置计数器
             videoPlayer.addEventListener('canplay', () => {
+                clearTimeout(loadTimeout);
+                apiSwitchCount = 0; // 成功加载后重置计数器
                 tryAutoPlay();
             }, { once: true });
         }
@@ -612,10 +634,17 @@
         // 视频事件监听
         videoPlayer.addEventListener('loadstart', showLoading);
         videoPlayer.addEventListener('canplay', hideLoading);
-        videoPlayer.addEventListener('error', () => {
+        videoPlayer.addEventListener('error', (e) => {
+            // 如果src为空（由我们自己设置），则不触发错误处理
+            if (!videoPlayer.currentSrc || videoPlayer.currentSrc === window.location.href) {
+                return;
+            }
             hideLoading();
-            showNotification('视频加载失败，正在重试...');
-            setTimeout(loadNewVideo, 2000);
+            // 只有在还有重试机会时才显示消息并重试
+            if (apiSwitchCount < API_SWITCH_LIMIT) {
+                 showNotification(`接口 ${currentApiIndex + 1} 加载失败，自动切换`);
+                 loadNewVideo();
+            }
         });
 
         videoPlayer.addEventListener('ended', () => {
