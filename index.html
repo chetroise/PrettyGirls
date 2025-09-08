@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pretty Girls</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr 280px;
+            min-height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* 左侧广告区域 */
+        .left-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand-info {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand-logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .brand-desc {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .ad-section {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .ad-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .ad-desc {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .stats-section {
+            background: rgba(103, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stats-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .stats-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* 中央视频区域 */
+        .video-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .video-wrapper {
+            position: relative;
+            height: 85vh; /* Use 85% of the viewport height */
+            max-height: 900px; /* Set a reasonable max height */
+            aspect-ratio: 9 / 16; /* Maintain vertical aspect ratio */
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            background: #000;
+            margin: auto; /* Center it in the flex container */
+        }
+
+        #videoPlayer {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            z-index: 10;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 右侧控制面板 */
+        .controls-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            text-align: center;
+            color: #333;
+        }
+
+        .control-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-button {
+            width: 100%;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .control-button.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .control-button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .control-button.secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #e9ecef;
+        }
+
+        .control-button.secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .control-button.success {
+            background: linear-gradient(135deg, #56ab2f, #a8e6cf);
+            color: white;
+        }
+
+        .control-button.success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(86, 171, 47, 0.4);
+        }
+
+        .keyboard-shortcuts {
+            background: rgba(103, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .shortcut-key {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+                gap: 16px;
+                padding: 16px;
+            }
+
+            .left-sidebar {
+                order: 3;
+                padding: 20px;
+            }
+
+            .video-section {
+                order: 1;
+                padding: 20px 0;
+            }
+
+            .video-wrapper {
+                width: auto;
+                height: 60vh; /* Adjust height for tablets */
+                max-width: 100%;
+                aspect-ratio: 9 / 16;
+                margin: 0 auto;
+            }
+
+            .controls-sidebar {
+                order: 2;
+                padding: 20px;
+            }
+
+            .control-button {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            .keyboard-shortcuts {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+                gap: 12px;
+            }
+
+            .video-wrapper {
+                width: auto;
+                height: 65vh; /* Taller on phones */
+                max-width: 100%;
+                aspect-ratio: 9 / 16;
+                margin: 0 auto;
+            }
+
+            .left-sidebar,
+            .controls-sidebar {
+                padding: 16px;
+            }
+
+            .sidebar-title {
+                font-size: 18px;
+            }
+
+            .control-button {
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧广告区域 -->
+        <div class="left-sidebar">
+            <div class="brand-info">
+                <div class="brand-logo">🎬</div>
+                <div class="brand-title">Pretty Girls</div>
+                <div class="brand-desc">Enjoy a curated collection of pretty girls.</div>
+            </div>
+
+            <div class="ad-section">
+                <div class="ad-title">🔥 热门推荐</div>
+                <div class="ad-desc">发现更多精彩内容，尽在我们的平台</div>
+            </div>
+
+            <div class="stats-section">
+                <div class="stats-number" id="viewCount">0</div>
+                <div class="stats-label">今日观看次数</div>
+            </div>
+        </div>
+
+        <!-- 中央视频区域 -->
+        <div class="video-section">
+            <div class="video-wrapper">
+                <video id="videoPlayer" controls muted></video>
+                <div class="loading" id="loading">加载中...</div>
+            </div>
+        </div>
+
+        <!-- 右侧控制面板 -->
+        <div class="controls-sidebar">
+            <div class="sidebar-title">🎮 控制面板</div>
+            
+            <div class="control-section">
+                <div class="section-title">视频控制</div>
+                <button id="reloadBtn" class="control-button primary">
+                    ⏭️ 下个视频
+                </button>
+                <button id="autoPlayBtn" class="control-button secondary">
+                    🔄 自动连播
+                </button>
+            </div>
+
+            <div class="control-section">
+                <div class="section-title">音频控制</div>
+                <button id="toggleMuteBtn" class="control-button secondary">
+                    🔊 开启静音
+                </button>
+            </div>
+
+            <div class="control-section">
+                <div class="section-title">下载功能</div>
+                <button id="downloadBtn" class="control-button secondary">
+                    📥 下载视频
+                </button>
+            </div>
+
+            <div class="keyboard-shortcuts">
+                <div class="section-title">快捷键</div>
+                <div class="shortcut-item">
+                    <span>下个视频</span>
+                    <span class="shortcut-key">↑↓</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>播放/暂停</span>
+                    <span class="shortcut-key">空格</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>静音</span>
+                    <span class="shortcut-key">M</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>下载</span>
+                    <span class="shortcut-key">D</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // API接口数组
+        const APIs = [
+            'https://api.yujn.cn/api/zzxjj.php?type=video',
+            'https://api.lolimi.cn/API/zzxjj/',
+            'https://api.lolimi.cn/API/zzxjj/api.php',
+            'https://api.ghser.com/random/api.php?sort=302',
+            'https://api.ghser.com/random/api.php?sort=303'
+        ];
+
+        // 全局变量
+        const videoPlayer = document.getElementById('videoPlayer');
+        const loading = document.getElementById('loading');
+        let autoPlayEnabled = false;
+        let viewCount = 0;
+        let currentApiIndex = -1;
+        let userInteracted = false;
+
+        // 获取随机API
+        function getRandomAPI() {
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * APIs.length);
+            } while (newIndex === currentApiIndex && APIs.length > 1);
+            
+            currentApiIndex = newIndex;
+            return APIs[currentApiIndex];
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            loading.style.display = 'block';
+        }
+
+        // 隐藏加载状态
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+
+        // 显示通知
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 更新观看次数
+        function updateViewCount() {
+            viewCount++;
+            document.getElementById('viewCount').textContent = viewCount;
+        }
+
+        // 更新按钮状态
+        function updateButtonStates() {
+            const autoPlayBtn = document.getElementById('autoPlayBtn');
+            const toggleMuteBtn = document.getElementById('toggleMuteBtn');
+            
+            autoPlayBtn.textContent = autoPlayEnabled ? '🔄 关闭连播' : '🔄 自动连播';
+            autoPlayBtn.className = autoPlayEnabled ? 'control-button success' : 'control-button secondary';
+            
+            toggleMuteBtn.textContent = videoPlayer.muted ? '🔊 取消静音' : '🔊 开启静音';
+        }
+
+        // 加载新视频
+        function loadNewVideo() {
+            showLoading();
+            const videoUrl = getRandomAPI();
+            videoPlayer.src = videoUrl;
+            videoPlayer.load();
+            updateViewCount();
+            
+            // 尝试自动播放
+            videoPlayer.addEventListener('canplay', () => {
+                tryAutoPlay();
+            }, { once: true });
+        }
+        
+        // 尝试自动播放
+        async function tryAutoPlay() {
+            if (!userInteracted) {
+                showNotification('请点击任意按钮开始观看');
+                return;
+            }
+            
+            try {
+                await videoPlayer.play();
+                showNotification('视频已开始播放');
+            } catch (error) {
+                // 如果自动播放失败，尝试静音播放
+                videoPlayer.muted = true;
+                try {
+                    await videoPlayer.play();
+                    showNotification('视频已静音播放，点击取消静音');
+                    updateButtonStates();
+                } catch (mutedError) {
+                    showNotification('请点击播放按钮开始观看');
+                }
+            }
+        }
+
+        // 下载视频
+        async function downloadVideo() {
+            if (!videoPlayer.src) {
+                showNotification('请先加载视频');
+                return;
+            }
+
+            showNotification('正在准备下载...');
+            
+            try {
+                const response = await fetch(videoPlayer.src);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `video_${Date.now()}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                showNotification('下载已开始');
+            } catch (error) {
+                window.open(videoPlayer.src, '_blank');
+                showNotification('请在新窗口中右键保存视频');
+            }
+        }
+
+        // 启用用户交互
+        function enableUserInteraction() {
+            if (!userInteracted) {
+                userInteracted = true;
+                showNotification('自动播放已启用');
+            }
+        }
+
+        // 事件监听器
+        document.getElementById('reloadBtn').addEventListener('click', () => {
+            enableUserInteraction();
+            loadNewVideo();
+        });
+
+        document.getElementById('autoPlayBtn').addEventListener('click', () => {
+            enableUserInteraction();
+            autoPlayEnabled = !autoPlayEnabled;
+            updateButtonStates();
+            showNotification(autoPlayEnabled ? '自动连播已开启' : '自动连播已关闭');
+        });
+
+        document.getElementById('toggleMuteBtn').addEventListener('click', () => {
+            enableUserInteraction();
+            videoPlayer.muted = !videoPlayer.muted;
+            updateButtonStates();
+            showNotification(videoPlayer.muted ? '已静音' : '已取消静音');
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            enableUserInteraction();
+            downloadVideo();
+        });
+
+        // 视频播放器点击事件
+        videoPlayer.addEventListener('click', () => {
+            enableUserInteraction();
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+            } else {
+                videoPlayer.pause();
+            }
+        });
+
+        // 视频事件监听
+        videoPlayer.addEventListener('loadstart', showLoading);
+        videoPlayer.addEventListener('canplay', hideLoading);
+        videoPlayer.addEventListener('error', () => {
+            hideLoading();
+            showNotification('视频加载失败，正在重试...');
+            setTimeout(loadNewVideo, 2000);
+        });
+
+        videoPlayer.addEventListener('ended', () => {
+            if (autoPlayEnabled) {
+                showNotification('自动播放下一个视频...');
+                setTimeout(() => {
+                    loadNewVideo();
+                }, 1000);
+            } else {
+                showNotification('视频播放完毕，点击"下个视频"继续观看');
+            }
+        });
+
+        // 键盘事件
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'ArrowDown':
+                    e.preventDefault();
+                    loadNewVideo();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    if (videoPlayer.paused) {
+                        videoPlayer.play();
+                    } else {
+                        videoPlayer.pause();
+                    }
+                    break;
+                case 'm':
+                case 'M':
+                    videoPlayer.muted = !videoPlayer.muted;
+                    updateButtonStates();
+                    showNotification(videoPlayer.muted ? '已静音' : '已取消静音');
+                    break;
+                case 'd':
+                case 'D':
+                    downloadVideo();
+                    break;
+                case 'a':
+                case 'A':
+                    autoPlayEnabled = !autoPlayEnabled;
+                    updateButtonStates();
+                    showNotification(autoPlayEnabled ? '自动连播已开启' : '自动连播已关闭');
+                    break;
+            }
+        });
+
+        // 触摸事件（移动端）
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        videoPlayer.addEventListener('touchstart', (e) => {
+            touchStartY = e.changedTouches[0].screenY;
+        });
+
+        videoPlayer.addEventListener('touchend', (e) => {
+            touchEndY = e.changedTouches[0].screenY;
+            const swipeDistance = touchStartY - touchEndY;
+            
+            if (Math.abs(swipeDistance) > 50) {
+                if (swipeDistance > 0) {
+                    loadNewVideo();
+                }
+            }
+        });
+
+        // 初始化
+        loadNewVideo();
+        updateButtonStates();
+    </script>
+</body>
+</html>

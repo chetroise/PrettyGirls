@@ -1,0 +1,23 @@
+{
+  "name": "random-video-player",
+  "version": "1.0.0",
+  "description": "随机小姐姐视频播放器 - 部署到 Cloudflare Pages",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Static site - no build needed'",
+    "dev": "python3 -m http.server 8000 || python -m http.server 8000",
+    "preview": "python3 -m http.server 8080 || python -m http.server 8080"
+  },
+  "keywords": [
+    "video-player",
+    "random-videos",
+    "cloudflare-pages",
+    "static-site"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/random-video-player.git"
+  }
+}

@@ -1,0 +1,12 @@
+# Wrangler 配置文件 (可选)
+# 如果您想使用 Cloudflare Workers 功能，可以配置此文件
+
+name = "random-video-player"
+compatibility_date = "2024-01-01"
+
+# 如果需要使用 Workers，取消注释以下配置
+# [env.production]
+# name = "random-video-player-prod"
+
+# [env.staging]
+# name = "random-video-player-staging"
