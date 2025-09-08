@@ -518,28 +518,51 @@
 
         // 下载视频
         async function downloadVideo() {
-            if (!videoPlayer.src) {
-                showNotification('请先加载视频');
+            const videoUrl = videoPlayer.currentSrc; // 使用 currentSrc 获取真实的视频 URL
+            if (!videoUrl) {
+                showNotification('视频链接无效，无法下载');
                 return;
             }
 
-            showNotification('正在准备下载...');
+            showNotification('正在准备下载，请稍候...');
             
             try {
-                const response = await fetch(videoPlayer.src);
+                // 使用 fetch API 请求视频数据
+                const response = await fetch(videoUrl);
+                if (!response.ok) {
+                    throw new Error('网络响应错误');
+                }
                 const blob = await response.blob();
+                
+                // 创建一个临时的 URL 指向内存中的 blob 数据
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
+                a.style.display = 'none';
                 a.href = url;
-                a.download = `video_${Date.now()}.mp4`;
+                // 从 URL 中提取文件名，或生成一个随机文件名
+                const filename = videoUrl.split('/').pop().split('?')[0] || `video_${Date.now()}.mp4`;
+                a.download = filename;
+                
                 document.body.appendChild(a);
                 a.click();
-                document.body.removeChild(a);
+                
+                // 清理
                 window.URL.revokeObjectURL(url);
-                showNotification('下载已开始');
+                document.body.removeChild(a);
+                
+                showNotification('下载已开始！');
             } catch (error) {
-                window.open(videoPlayer.src, '_blank');
-                showNotification('请在新窗口中右键保存视频');
+                console.error('下载失败:', error);
+                // 如果 fetch 失败（通常是 CORS 跨域问题），则回退到在新窗口打开
+                showNotification('后台下载失败，正在尝试新窗口打开...');
+                setTimeout(() => {
+                    const newWindow = window.open(videoUrl, '_blank');
+                    if (newWindow) {
+                        showNotification('请在新窗口中右键保存视频');
+                    } else {
+                        showNotification('无法打开新窗口，请检查浏览器设置');
+                    }
+                }, 1500);
             }
         }
 
